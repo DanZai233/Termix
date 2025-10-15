@@ -3,7 +3,7 @@
 """
 
 from textual.app import ComposeResult
-from textual.containers import Container, Horizontal, Vertical, ScrollableContainer
+from textual.containers import Container, Horizontal, Vertical
 from textual.widgets import Static, Button, Label
 from textual.reactive import reactive
 from textual.message import Message

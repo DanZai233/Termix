@@ -299,41 +299,52 @@ CharacterDisplay {
     border: solid $secondary;
     padding: 1;
     margin: 1 0;
-    min-height: 35;
-    height: 35;
+    min-height: 20;
+    height: 20;
 }
 
 .page-controls {
     margin: 1 0;
     height: 3;
+    layout: horizontal;
+    align: center middle;
 }
 
 .page-controls Button {
     margin: 0 1;
+    min-width: 8;
 }
 
 #page-info {
     text-align: center;
     color: $accent;
-    margin: 0 2;
+    margin: 0 1;
+    width: 1fr;
 }
 
 .ingredient-buttons {
     margin: 1 0;
+    layout: horizontal;
+    align: center middle;
 }
 
 .ingredient-select-btn {
     margin: 0 1;
     height: 3;
-    min-width: 12;
+    min-width: 8;
+    width: 1fr;
 }
 
 .action-buttons {
     margin: 2 0;
+    layout: horizontal;
+    align: center middle;
 }
 
 .action-buttons Button {
-    margin-right: 1;
+    margin: 0 1;
+    min-width: 12;
+    width: 1fr;
 }
 
 /* 自由调酒界面样式 */
@@ -366,8 +377,8 @@ CharacterDisplay {
     width: 60%;
     padding: 1;
     min-width: 40;
-    min-height: 25;
-    height: 25;
+    min-height: 50;
+    height: 50;
 }
 
 .sub-title {

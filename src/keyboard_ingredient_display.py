@@ -3,7 +3,7 @@
 """
 
 from textual.app import ComposeResult
-from textual.containers import Container, Horizontal, Vertical, ScrollableContainer
+from textual.containers import Container, Horizontal, Vertical
 from textual.widgets import Static, Button, Label, Select
 from textual.reactive import reactive
 from rich.table import Table
@@ -29,8 +29,7 @@ class KeyboardIngredientDisplay(Container):
         yield Label("🧪 选择调酒材料 (键盘操作)", classes="section-title")
         
         # 材料显示区域
-        with ScrollableContainer(id="ingredients-scroll"):
-            yield Static("", id="ingredients-display")
+        yield Static("", id="ingredients-display")
         
         # 翻页控制
         with Horizontal(classes="page-controls"):
