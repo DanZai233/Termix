@@ -21,7 +21,10 @@ class IngredientDisplayNew(Container):
         self.cocktail_system = cocktail_system
         self.selected_ingredients = {}
         self.current_page = 0
-        self.items_per_page = 6
+        
+        # 从配置文件获取每页显示数量
+        ui_config = cocktail_system.game_config.get("ui_settings", {})
+        self.items_per_page = ui_config.get("items_per_page", 6)
     
     def compose(self) -> ComposeResult:
         """构建材料显示界面"""

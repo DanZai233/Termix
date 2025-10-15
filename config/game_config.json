@@ -1,0 +1,56 @@
+{
+  "game_settings": {
+    "initial_unlocked_recipes": [
+      "莫吉托",
+      "玛格丽特", 
+      "金汤力",
+      "螺丝刀",
+      "黑俄罗斯"
+    ],
+    "difficulty_levels": {
+      "1": "简单",
+      "2": "容易",
+      "3": "中等",
+      "4": "困难",
+      "5": "专家"
+    },
+    "scoring": {
+      "perfect_score": 100,
+      "missing_ingredient_penalty": 20,
+      "major_deviation_penalty": 15,
+      "minor_deviation_penalty": 8,
+      "extra_ingredient_penalty": 10,
+      "deviation_tolerance": {
+        "minor": 0.2,
+        "major": 0.5
+      }
+    },
+    "free_mixing": {
+      "base_score": 50,
+      "base_spirit_bonus": 20,
+      "mixer_bonus": 15,
+      "garnish_bonus": 10,
+      "optimal_ingredient_count": {
+        "min": 3,
+        "max": 6
+      },
+      "complexity_penalty": 5
+    }
+  },
+  "ui_settings": {
+    "items_per_page": 6,
+    "auto_layout_threshold": 100,
+    "animation_duration": 1.5,
+    "scroll_speed": 3
+  },
+  "character_settings": {
+    "default_mood": "happy",
+    "animation_frames": 6,
+    "dialogue_categories": [
+      "greeting",
+      "working", 
+      "success",
+      "encouragement"
+    ]
+  }
+}

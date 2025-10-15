@@ -4,50 +4,34 @@
 
 import random
 from typing import Dict, List, Tuple
-from dataclasses import dataclass
-from enum import Enum
 
-
-class IngredientType(Enum):
-    """材料类型枚举"""
-    BASE_SPIRIT = "基酒"
-    LIQUEUR = "利口酒"
-    MIXER = "调和剂"
-    GARNISH = "装饰"
-    ICE = "冰块"
-
-
-@dataclass
-class Ingredient:
-    """调酒材料"""
-    name: str
-    type: IngredientType
-    color: str
-    flavor_profile: List[str]
-    alcohol_content: float
-    emoji: str
-    description: str
-
-
-@dataclass
-class CocktailRecipe:
-    """鸡尾酒配方"""
-    name: str
-    ingredients: Dict[str, float]  # 材料名称 -> 用量(ml)
-    description: str
-    difficulty: int  # 1-5 难度等级
-    emoji: str
-    flavor_tags: List[str]
+from .data_models import Ingredient, CocktailRecipe, IngredientType
+from .config_loader import config_loader
 
 
 class CocktailSystem:
     """调酒系统主类"""
     
     def __init__(self):
-        self.ingredients = self._init_ingredients()
-        self.recipes = self._init_recipes()
+        # 从配置文件加载数据
+        self.game_config = config_loader.load_game_config()
+        self.ingredients = config_loader.load_ingredients()
+        self.recipes = config_loader.load_recipes()
+        
+        # 如果配置文件为空，使用内置数据作为后备
+        if not self.ingredients:
+            self.ingredients = self._init_ingredients()
+        if not self.recipes:
+            self.recipes = self._init_recipes()
+        
         self.player_inventory = list(self.ingredients.keys())  # 玩家拥有的材料
-        self.unlocked_recipes = ["莫吉托", "玛格丽特", "金汤力", "螺丝刀", "黑俄罗斯"]  # 初始解锁的配方
+        
+        # 从配置文件获取初始解锁的配方
+        initial_recipes = self.game_config.get("game_settings", {}).get(
+            "initial_unlocked_recipes", 
+            ["莫吉托", "玛格丽特", "金汤力", "螺丝刀", "黑俄罗斯"]
+        )
+        self.unlocked_recipes = [recipe for recipe in initial_recipes if recipe in self.recipes]
     
     def _init_ingredients(self) -> Dict[str, Ingredient]:
         """初始化调酒材料"""
@@ -696,7 +680,20 @@ class CocktailSystem:
             return 0, "未知配方"
         
         recipe = self.recipes[recipe_name]
-        score = 100
+        
+        # 从配置文件获取评分参数
+        scoring_config = self.game_config.get("game_settings", {}).get("scoring", {})
+        perfect_score = scoring_config.get("perfect_score", 100)
+        missing_penalty = scoring_config.get("missing_ingredient_penalty", 20)
+        major_penalty = scoring_config.get("major_deviation_penalty", 15)
+        minor_penalty = scoring_config.get("minor_deviation_penalty", 8)
+        extra_penalty = scoring_config.get("extra_ingredient_penalty", 10)
+        
+        tolerance = scoring_config.get("deviation_tolerance", {})
+        minor_tolerance = tolerance.get("minor", 0.2)
+        major_tolerance = tolerance.get("major", 0.5)
+        
+        score = perfect_score
         feedback = []
         
         # 检查每个材料的用量
@@ -704,22 +701,22 @@ class CocktailSystem:
             player_amount = player_ingredients.get(ingredient_name, 0)
             
             if player_amount == 0:
-                score -= 20
+                score -= missing_penalty
                 feedback.append(f"缺少 {ingredient_name}")
             else:
                 # 计算用量偏差
                 deviation = abs(player_amount - correct_amount) / correct_amount
-                if deviation > 0.5:
-                    score -= 15
+                if deviation > major_tolerance:
+                    score -= major_penalty
                     feedback.append(f"{ingredient_name} 用量偏差较大")
-                elif deviation > 0.2:
-                    score -= 8
+                elif deviation > minor_tolerance:
+                    score -= minor_penalty
                     feedback.append(f"{ingredient_name} 用量略有偏差")
         
         # 检查多余材料
         for ingredient_name in player_ingredients:
             if ingredient_name not in recipe.ingredients and player_ingredients[ingredient_name] > 0:
-                score -= 10
+                score -= extra_penalty
                 feedback.append(f"多余的 {ingredient_name}")
         
         # 确保得分不为负
