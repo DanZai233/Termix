@@ -132,6 +132,46 @@ CharacterDisplay {
     padding: 1;
 }
 
+#recipes-scroll {
+    height: 15;
+    border: solid $secondary;
+    padding: 1;
+    margin: 1 0;
+}
+
+.recipe-controls {
+    margin: 1 0;
+    height: 3;
+}
+
+.recipe-controls Button {
+    margin: 0 1;
+}
+
+#recipe-page-info {
+    text-align: center;
+    color: $accent;
+    margin: 0 2;
+}
+
+.recipe-buttons {
+    margin: 1 0;
+}
+
+.recipe-select-btn {
+    margin: 0 1;
+    height: 3;
+    min-width: 10;
+}
+
+#recipe-details {
+    background: $panel;
+    border: solid $success;
+    padding: 1;
+    margin: 1 0;
+    min-height: 10;
+}
+
 .hint {
     background: $warning 20%;
     border: solid $warning;
@@ -175,6 +215,44 @@ CharacterDisplay {
 
 #free-mixing-view {
     display: none;
+}
+
+#reference-view {
+    display: none;
+}
+
+/* 快速参考样式 */
+.reference-tabs {
+    height: 3;
+    margin: 1 0;
+}
+
+.reference-tabs Button {
+    margin-right: 1;
+}
+
+#reference-content {
+    height: 1fr;
+    border: solid $secondary;
+    padding: 1;
+    margin: 1 0;
+}
+
+/* 快速配方选择器样式 */
+#selected-recipe-info {
+    background: $panel;
+    border: solid $success;
+    padding: 1;
+    margin: 1 0;
+    min-height: 15;
+}
+
+.quick-actions {
+    margin: 2 0;
+}
+
+.quick-actions Button {
+    margin-right: 1;
 }
 
 #help {

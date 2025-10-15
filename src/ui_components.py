@@ -18,6 +18,7 @@ from typing import Dict, List
 
 from .free_mixing import FreeMixingScreen
 from .ingredient_display import IngredientDisplayNew
+from .quick_reference import QuickReference, QuickRecipeSelector
 
 
 class WelcomeScreen(Container):
@@ -88,112 +89,7 @@ class CharacterDisplay(Static):
         self.update_character("working", "正在为您精心调制...")
 
 
-class IngredientSelector(Container):
-    """材料选择器"""
-    
-    def __init__(self, cocktail_system, **kwargs):
-        super().__init__(**kwargs)
-        self.cocktail_system = cocktail_system
-        self.selected_ingredients = {}
-        self.ingredient_id_map = {}  # 存储ID到材料名称的映射
-        
-        # 预先创建ID映射
-        for ingredient in self.cocktail_system.get_available_ingredients():
-            safe_id = f"ingredient-{hash(ingredient.name) % 10000}"
-            self.ingredient_id_map[safe_id] = ingredient.name
-    
-    def compose(self) -> ComposeResult:
-        """构建材料选择界面"""
-        
-        yield Label("🧪 选择调酒材料", classes="section-title")
-        
-        # 清空并重新初始化ID映射
-        self.ingredient_id_map.clear()
-        
-        # 创建材料网格
-        with Grid(id="ingredients-grid"):
-            for ingredient in self.cocktail_system.get_available_ingredients():
-                yield self._create_ingredient_card(ingredient)
-        
-        yield Label("📊 当前选择:", classes="section-title")
-        yield Static("", id="selected-display")
-        
-        yield Horizontal(
-            Button("🗑️ 清空", variant="error", id="clear-selection"),
-            Button("🍸 开始调酒", variant="success", id="start-mixing"),
-            classes="button-row"
-        )
-    
-    def _create_ingredient_card(self, ingredient):
-        """创建材料卡片"""
-        card_content = f"""
-{ingredient.emoji} {ingredient.name}
-类型: {ingredient.type.value}
-酒精度: {ingredient.alcohol_content}%
-风味: {', '.join(ingredient.flavor_profile)}
-
-{ingredient.description}
-        """
-        
-        # 使用预先创建的安全ID
-        safe_id = None
-        for existing_id, name in self.ingredient_id_map.items():
-            if name == ingredient.name:
-                safe_id = existing_id
-                break
-        
-        if safe_id is None:
-            # 如果没找到，创建新的安全ID
-            safe_id = f"ingredient-{hash(ingredient.name) % 10000}"
-            self.ingredient_id_map[safe_id] = ingredient.name
-        
-        return Button(
-            card_content.strip(),
-            id=safe_id,
-            classes="ingredient-card"
-        )
-    
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        """处理按钮点击"""
-        if event.button.id and event.button.id.startswith("ingredient-"):
-            # 从映射中获取真实的材料名称
-            ingredient_name = self.ingredient_id_map.get(event.button.id)
-            if ingredient_name:
-                self._toggle_ingredient(ingredient_name)
-        elif event.button.id == "clear-selection":
-            self.selected_ingredients.clear()
-            self._update_selection_display()
-        elif event.button.id == "start-mixing":
-            self.post_message(StartMixingMessage(self.selected_ingredients.copy()))
-    
-    def _toggle_ingredient(self, ingredient_name):
-        """切换材料选择状态"""
-        if ingredient_name in self.selected_ingredients:
-            # 如果已选择，增加用量
-            current_amount = self.selected_ingredients[ingredient_name]
-            new_amount = current_amount + 10  # 每次增加10ml
-            if new_amount > 200:  # 最大200ml
-                del self.selected_ingredients[ingredient_name]
-            else:
-                self.selected_ingredients[ingredient_name] = new_amount
-        else:
-            # 如果未选择，添加默认用量
-            self.selected_ingredients[ingredient_name] = 30  # 默认30ml
-        
-        self._update_selection_display()
-    
-    def _update_selection_display(self):
-        """更新选择显示"""
-        if not self.selected_ingredients:
-            content = "还没有选择任何材料"
-        else:
-            content = "\n".join([
-                f"• {name}: {amount}ml" 
-                for name, amount in self.selected_ingredients.items()
-            ])
-        
-        display = self.query_one("#selected-display", Static)
-        display.update(content)
+# 旧的IngredientSelector已被IngredientDisplayNew替代
 
 
 class RecipeBook(Container):
@@ -202,40 +98,147 @@ class RecipeBook(Container):
     def __init__(self, cocktail_system, **kwargs):
         super().__init__(**kwargs)
         self.cocktail_system = cocktail_system
+        self.current_page = 0
+        self.recipes_per_page = 3
+        self.selected_recipe = None
     
     def compose(self) -> ComposeResult:
         """构建配方书界面"""
         
         yield Label("📖 配方大全", classes="section-title")
         
-        for recipe in self.cocktail_system.get_unlocked_recipes():
-            yield self._create_recipe_card(recipe)
+        # 配方显示区域
+        with ScrollableContainer(id="recipes-scroll"):
+            yield Static("", id="recipes-display")
+        
+        # 翻页控制
+        with Horizontal(classes="recipe-controls"):
+            yield Button("⬅️ 上页", id="prev-recipe-page")
+            yield Static("", id="recipe-page-info")
+            yield Button("➡️ 下页", id="next-recipe-page")
+        
+        # 配方选择按钮
+        with Horizontal(classes="recipe-buttons"):
+            for i in range(self.recipes_per_page):
+                yield Button("", id=f"recipe-{i}", classes="recipe-select-btn")
+        
+        # 详细信息显示
+        yield Label("📋 配方详情:", classes="section-title")
+        yield Static("点击配方查看详细信息", id="recipe-details")
         
         # 显示提示
         hint = self.cocktail_system.get_random_recipe_hint()
         yield Static(f"💡 小贴士: {hint}", classes="hint")
     
-    def _create_recipe_card(self, recipe):
-        """创建配方卡片"""
+    def on_mount(self):
+        """初始化"""
+        self._update_display()
+    
+    def _update_display(self):
+        """更新配方显示"""
+        recipes = self.cocktail_system.get_unlocked_recipes()
+        total_pages = (len(recipes) + self.recipes_per_page - 1) // self.recipes_per_page
         
-        # 创建材料表格
-        table = Table(title=f"{recipe.emoji} {recipe.name}")
-        table.add_column("材料", style="cyan")
-        table.add_column("用量", style="magenta")
+        # 更新页面信息
+        page_info = self.query_one("#recipe-page-info", Static)
+        page_info.update(f"第 {self.current_page + 1} 页 / 共 {total_pages} 页")
+        
+        # 获取当前页的配方
+        start_idx = self.current_page * self.recipes_per_page
+        end_idx = min(start_idx + self.recipes_per_page, len(recipes))
+        current_recipes = recipes[start_idx:end_idx]
+        
+        # 创建配方概览表格
+        content = ""
+        for i, recipe in enumerate(current_recipes, 1):
+            content += f"\n{i}. {recipe.emoji} [bold]{recipe.name}[/bold]\n"
+            content += f"   [italic]{recipe.description}[/italic]\n"
+            content += f"   难度: {'⭐' * recipe.difficulty} | 材料: {len(recipe.ingredients)}种\n"
+            content += f"   风味: {', '.join(recipe.flavor_tags)}\n"
+        
+        # 更新显示
+        display = self.query_one("#recipes-display", Static)
+        display.update(content)
+        
+        # 更新选择按钮
+        for i in range(self.recipes_per_page):
+            button = self.query_one(f"#recipe-{i}", Button)
+            if i < len(current_recipes):
+                recipe = current_recipes[i]
+                button.label = f"{i+1}. 查看 {recipe.emoji}"
+                button.display = True
+            else:
+                button.display = False
+        
+        # 更新翻页按钮状态
+        prev_btn = self.query_one("#prev-recipe-page", Button)
+        next_btn = self.query_one("#next-recipe-page", Button)
+        prev_btn.disabled = (self.current_page == 0)
+        next_btn.disabled = (self.current_page >= total_pages - 1)
+    
+    def _show_recipe_details(self, recipe):
+        """显示配方详情"""
+        # 创建详细的材料表格
+        table = Table(title=f"{recipe.emoji} {recipe.name} 详细配方")
+        table.add_column("材料", style="cyan", width=15)
+        table.add_column("用量", style="magenta", width=8)
+        table.add_column("类型", style="green", width=8)
+        table.add_column("说明", style="white", width=20)
+        
+        total_volume = 0
+        total_alcohol = 0
         
         for ingredient_name, amount in recipe.ingredients.items():
-            table.add_row(ingredient_name, f"{amount}ml")
+            if ingredient_name in self.cocktail_system.ingredients:
+                ingredient = self.cocktail_system.ingredients[ingredient_name]
+                table.add_row(
+                    f"{ingredient.emoji} {ingredient_name}",
+                    f"{amount}ml",
+                    ingredient.type.value,
+                    ingredient.description[:20] + "..." if len(ingredient.description) > 20 else ingredient.description
+                )
+                total_volume += amount
+                total_alcohol += ingredient.alcohol_content * amount / 100
+            else:
+                table.add_row(ingredient_name, f"{amount}ml", "未知", "材料不存在")
+                total_volume += amount
         
-        # 添加描述和难度
-        description = f"\n{recipe.description}\n难度: {'⭐' * recipe.difficulty}"
+        avg_alcohol = total_alcohol / total_volume * 100 if total_volume > 0 else 0
         
-        return Static(
-            Panel(
-                f"{table}\n{description}",
-                border_style="green"
-            ),
-            classes="recipe-card"
-        )
+        details = f"{table}\n\n"
+        details += f"[bold]配方信息:[/bold]\n"
+        details += f"• 总量: {total_volume}ml\n"
+        details += f"• 平均酒精度: {avg_alcohol:.1f}%\n"
+        details += f"• 难度: {'⭐' * recipe.difficulty}\n"
+        details += f"• 风味标签: {', '.join(recipe.flavor_tags)}\n"
+        details += f"• 描述: {recipe.description}\n"
+        
+        # 更新详情显示
+        details_display = self.query_one("#recipe-details", Static)
+        details_display.update(details)
+    
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """处理按钮点击"""
+        if event.button.id == "prev-recipe-page":
+            if self.current_page > 0:
+                self.current_page -= 1
+                self._update_display()
+        elif event.button.id == "next-recipe-page":
+            recipes = self.cocktail_system.get_unlocked_recipes()
+            total_pages = (len(recipes) + self.recipes_per_page - 1) // self.recipes_per_page
+            if self.current_page < total_pages - 1:
+                self.current_page += 1
+                self._update_display()
+        elif event.button.id and event.button.id.startswith("recipe-"):
+            # 显示配方详情
+            idx = int(event.button.id.split("-")[1])
+            recipes = self.cocktail_system.get_unlocked_recipes()
+            start_idx = self.current_page * self.recipes_per_page
+            
+            if start_idx + idx < len(recipes):
+                recipe = recipes[start_idx + idx]
+                self.selected_recipe = recipe
+                self._show_recipe_details(recipe)
 
 
 class MixingAnimation(Container):
@@ -326,6 +329,7 @@ class GameScreen(Container):
             Button("📖 配方", id="nav-recipes"),
             Button("🍸 标准调酒", id="nav-mixing"),
             Button("🎨 自由调酒", id="nav-free-mixing"),
+            Button("📋 快速参考", id="nav-reference"),
             Button("🔄 切换布局", id="toggle-layout"),
             classes="nav-bar"
         )
@@ -341,8 +345,9 @@ class GameScreen(Container):
                 with Container(classes="content-section", id="content-section"):
                     yield IngredientDisplayNew(self.cocktail_system, id="ingredients-view")
                     yield RecipeBook(self.cocktail_system, id="recipes-view")
-                    yield MixingAnimation(id="mixing-view")
+                    yield QuickRecipeSelector(self.cocktail_system, id="mixing-view")
                     yield FreeMixingScreen(self.cocktail_system, self.bunny_girl, id="free-mixing-view")
+                    yield QuickReference(self.cocktail_system, id="reference-view")
     
     def on_mount(self):
         """界面挂载时的初始化"""
@@ -367,6 +372,9 @@ class GameScreen(Container):
         elif event.button.id == "nav-free-mixing":
             self._show_view("free-mixing")
             self.app.current_module = "free-mixing"
+        elif event.button.id == "nav-reference":
+            self._show_view("reference")
+            self.app.current_module = "reference"
         elif event.button.id == "toggle-layout":
             self._toggle_layout()
     
@@ -440,7 +448,7 @@ class GameScreen(Container):
         self.current_view = view_name
         
         # 隐藏所有视图
-        views = ["ingredients-view", "recipes-view", "mixing-view", "free-mixing-view"]
+        views = ["ingredients-view", "recipes-view", "mixing-view", "free-mixing-view", "reference-view"]
         for view_id in views:
             view = self.query_one(f"#{view_id}")
             view.display = False
