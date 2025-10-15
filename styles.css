@@ -1,0 +1,258 @@
+/* Termix 游戏样式 */
+
+/* 全局样式 */
+Screen {
+    background: $background;
+}
+
+/* 欢迎界面样式 */
+WelcomeScreen {
+    align: center middle;
+    background: $surface;
+    border: thick $primary;
+    padding: 2;
+    margin: 2;
+}
+
+#title {
+    text-align: center;
+    margin: 1;
+    text-style: bold;
+}
+
+#subtitle {
+    text-align: center;
+    margin: 1;
+    text-style: italic;
+}
+
+#intro {
+    text-align: center;
+    margin: 2;
+    padding: 1;
+    background: $panel;
+    border: solid $secondary;
+}
+
+#start_game {
+    margin: 2;
+    width: 20;
+}
+
+/* 游戏界面样式 */
+.nav-bar {
+    height: 3;
+    background: $panel;
+    border-bottom: solid $primary;
+    padding: 1;
+}
+
+.nav-bar Button {
+    margin-right: 1;
+}
+
+#main-content {
+    height: 1fr;
+}
+
+.character-panel {
+    width: 40%;
+    background: $surface;
+    border-right: solid $secondary;
+    padding: 1;
+}
+
+.content-panel {
+    width: 60%;
+    padding: 1;
+}
+
+/* 角色显示样式 */
+CharacterDisplay {
+    height: 100%;
+    text-align: center;
+}
+
+/* 材料选择器样式 */
+.section-title {
+    text-style: bold;
+    color: $accent;
+    margin: 1 0;
+}
+
+#ingredients-grid {
+    grid-size: 3;
+    grid-gutter: 1;
+    margin: 1 0;
+}
+
+.ingredient-card {
+    height: 8;
+    background: $panel;
+    border: solid $secondary;
+    text-align: center;
+    padding: 1;
+}
+
+.ingredient-card:hover {
+    background: $primary 20%;
+    border: solid $primary;
+}
+
+#selected-display {
+    background: $surface;
+    border: solid $accent;
+    padding: 1;
+    margin: 1 0;
+    min-height: 5;
+}
+
+.button-row {
+    margin: 1 0;
+}
+
+.button-row Button {
+    margin-right: 1;
+}
+
+/* 配方书样式 */
+.recipe-card {
+    margin: 1 0;
+    background: $panel;
+    border: solid $success;
+    padding: 1;
+}
+
+.hint {
+    background: $warning 20%;
+    border: solid $warning;
+    padding: 1;
+    margin: 1 0;
+    text-style: italic;
+}
+
+/* 调酒动画样式 */
+#mixing-display {
+    height: 20;
+    text-align: center;
+    background: $surface;
+    border: solid $accent;
+    margin: 1 0;
+}
+
+#mixing-progress {
+    margin: 1 0;
+}
+
+#mixing-status {
+    text-align: center;
+    text-style: bold;
+    color: $accent;
+    margin: 1 0;
+}
+
+/* 视图显示控制 */
+#ingredients-view {
+    display: block;
+}
+
+#recipes-view {
+    display: none;
+}
+
+#mixing-view {
+    display: none;
+}
+
+#free-mixing-view {
+    display: none;
+}
+
+/* 自由调酒界面样式 */
+#free-mixing-layout {
+    height: 100%;
+}
+
+.side-panels {
+    width: 40%;
+    background: $surface;
+    border-right: solid $secondary;
+}
+
+.info-panel {
+    height: 50%;
+    border-bottom: solid $secondary;
+    padding: 1;
+}
+
+.panel-title {
+    text-style: bold;
+    color: $accent;
+    margin-bottom: 1;
+}
+
+.mixing-area {
+    width: 60%;
+    padding: 1;
+}
+
+.sub-title {
+    text-style: bold;
+    color: $primary;
+    margin: 1 0;
+}
+
+.amount-input {
+    margin: 1 0;
+}
+
+.amount-input Label {
+    width: 10;
+}
+
+.amount-input Input {
+    width: 10;
+    margin: 0 1;
+}
+
+.control-buttons {
+    margin: 2 0;
+}
+
+.control-buttons Button {
+    margin-right: 1;
+}
+
+#current-recipe {
+    background: $panel;
+    border: solid $accent;
+    padding: 1;
+    margin: 1 0;
+    min-height: 10;
+}
+
+/* 响应式设计 - Textual不支持@media，移除 */
+
+/* 动画效果 */
+Button:hover {
+    text-style: bold;
+    background: $primary 30%;
+}
+
+.ingredient-card:focus {
+    border: thick $accent;
+    background: $accent 10%;
+}
+
+/* 颜色主题 */
+:root {
+    --primary: #ff6b9d;
+    --secondary: #4ecdc4;
+    --accent: #45b7d1;
+    --success: #96ceb4;
+    --warning: #feca57;
+    --error: #ff6b6b;
+    --surface: #2c3e50;
+    --panel: #34495e;
+    --background: #1a252f;
+}
