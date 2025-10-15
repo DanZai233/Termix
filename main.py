@@ -283,6 +283,18 @@ class TermixApp(App):
     
     async def _show_mixing_result(self, score: int, recipe_name: str, ingredients):
         """显示调酒结果"""
+        # 获取配方信息和ASCII艺术
+        ascii_art = ""
+        if recipe_name:
+            recipe = None
+            for r in self.cocktail_system.get_unlocked_recipes():
+                if r.name == recipe_name:
+                    recipe = r
+                    break
+            
+            if recipe and hasattr(recipe, 'ascii_art') and recipe.ascii_art:
+                ascii_art = recipe.ascii_art
+        
         # 创建结果界面
         if recipe_name:
             title = f"🍸 成功调制: {recipe_name}"
@@ -293,6 +305,8 @@ class TermixApp(App):
 
 🧪 使用材料:
 {chr(10).join([f"• {name}: {amount}ml" for name, amount in ingredients.items()])}
+
+{ascii_art}
 
 💡 提示: 继续尝试其他配方来获得更高分数！
 """
@@ -305,6 +319,29 @@ class TermixApp(App):
 
 🧪 使用材料:
 {chr(10).join([f"• {name}: {amount}ml" for name, amount in ingredients.items()])}
+
+    ╭─────────────────╮
+   ╱                 ╲
+  ╱       🍹         ╲
+ ╱     创意鸡尾酒      ╲
+│                       │
+│      🧊 🧊 🧊       │
+│     🧊 🧊 🧊 🧊     │
+│    🧊 🧊 🧊 🧊 🧊   │
+│   🧊 🧊 🧊 🧊 🧊 🧊  │
+│  🧊 🧊 🧊 🧊 🧊 🧊 🧊 │
+│ 🧊 🧊 🧊 🧊 🧊 🧊 🧊 🧊│
+│  🧊 🧊 🧊 🧊 🧊 🧊 🧊 │
+│   🧊 🧊 🧊 🧊 🧊 🧊  │
+│    🧊 🧊 🧊 🧊 🧊   │
+│     🧊 🧊 🧊 🧊     │
+│      🧊 🧊 🧊       │
+│        🧊 🧊        │
+│         🧊          │
+│                     │
+╲                     ╱
+ ╲                   ╱
+  ╲_________________╱
 
 💡 提示: 尝试按照经典配方调酒来获得更高分数！
 """

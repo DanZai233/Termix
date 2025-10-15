@@ -37,3 +37,4 @@ class CocktailRecipe:
     difficulty: int  # 1-5 难度等级
     emoji: str
     flavor_tags: List[str]
+    ascii_art: str = ""  # ASCII艺术图片
