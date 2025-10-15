@@ -412,6 +412,12 @@ class GameScreen(Container):
     
     def on_key(self, event: Key) -> None:
         """处理键盘事件"""
+        # 检查当前聚焦的组件，避免与子组件的键盘事件冲突
+        focused = self.app.focused
+        if focused and hasattr(focused, 'id') and focused.id in ["ingredients-view", "recipes-view", "reference-view"]:
+            # 如果聚焦在子组件上，不处理全局快捷键
+            return
+            
         # 全局导航快捷键
         if event.key == "1":
             self._show_view("ingredients")
