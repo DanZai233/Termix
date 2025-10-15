@@ -26,12 +26,8 @@ class CocktailSystem:
         
         self.player_inventory = list(self.ingredients.keys())  # 玩家拥有的材料
         
-        # 从配置文件获取初始解锁的配方
-        initial_recipes = self.game_config.get("game_settings", {}).get(
-            "initial_unlocked_recipes", 
-            ["莫吉托", "玛格丽特", "金汤力", "螺丝刀", "黑俄罗斯"]
-        )
-        self.unlocked_recipes = [recipe for recipe in initial_recipes if recipe in self.recipes]
+        # 默认解锁所有配方
+        self.unlocked_recipes = list(self.recipes.keys())
     
     def _init_ingredients(self) -> Dict[str, Ingredient]:
         """初始化调酒材料"""

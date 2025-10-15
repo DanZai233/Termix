@@ -212,15 +212,77 @@ class QuickRecipeSelector(Container):
             select_widget = self.query_one("#recipe-select", Select)
             if select_widget.value:
                 recipe_name = str(select_widget.value)
-                # 这里可以发送消息显示详细信息
-                pass
+                self._show_detailed_recipe(recipe_name)
         elif event.button.id == "mix-selected-recipe":
             # 开始按配方调制
             select_widget = self.query_one("#recipe-select", Select)
             if select_widget.value:
                 recipe_name = str(select_widget.value)
-                # 这里可以发送消息开始调制
-                pass
+                self._start_recipe_mixing(recipe_name)
+    
+    def _show_detailed_recipe(self, recipe_name: str):
+        """显示详细配方信息"""
+        recipe = None
+        for r in self.cocktail_system.get_unlocked_recipes():
+            if r.name == recipe_name:
+                recipe = r
+                break
+        
+        if recipe:
+            # 计算鸡尾酒的总酒精度
+            total_volume = sum(recipe.ingredients.values())
+            alcohol_volume = 0
+            
+            for ingredient_name, amount in recipe.ingredients.items():
+                # 从材料系统中获取材料的酒精度
+                ingredient = None
+                for ing in self.cocktail_system.get_available_ingredients():
+                    if ing.name == ingredient_name:
+                        ingredient = ing
+                        break
+                
+                if ingredient and hasattr(ingredient, 'alcohol_content'):
+                    alcohol_volume += amount * (ingredient.alcohol_content / 100)
+            
+            alcohol_content = (alcohol_volume / total_volume * 100) if total_volume > 0 else 0
+            
+            # 创建详细的配方信息
+            detailed_info = f"""
+[bold cyan]{recipe.emoji} {recipe.name}[/bold cyan]
+
+[bold]📝 描述:[/bold] {recipe.description}
+
+[bold]📊 配方信息:[/bold]
+• 难度: {'⭐' * recipe.difficulty}
+• 风味标签: {', '.join(recipe.flavor_tags)}
+• 酒精度: {alcohol_content:.1f}%
+
+[bold]🧪 材料清单:[/bold]
+"""
+            for ingredient_name, amount in recipe.ingredients.items():
+                detailed_info += f"• {ingredient_name}: {amount}ml\n"
+            
+            detailed_info += f"\n[bold]💡 调制提示:[/bold]\n"
+            detailed_info += f"• 按顺序添加材料\n"
+            detailed_info += f"• 充分搅拌混合\n"
+            detailed_info += f"• 注意用量精确度"
+            
+            # 发送显示详细信息的消息
+            from .ui_components import ShowRecipeDetailsMessage
+            self.post_message(ShowRecipeDetailsMessage(recipe, detailed_info))
+    
+    def _start_recipe_mixing(self, recipe_name: str):
+        """开始按配方调制"""
+        recipe = None
+        for r in self.cocktail_system.get_unlocked_recipes():
+            if r.name == recipe_name:
+                recipe = r
+                break
+        
+        if recipe:
+            # 发送按配方调制的消息
+            from .ui_components import StartRecipeMixingMessage
+            self.post_message(StartRecipeMixingMessage(recipe))
     
     def on_key(self, event) -> None:
         """处理键盘事件"""
@@ -229,5 +291,4 @@ class QuickRecipeSelector(Container):
             select_widget = self.query_one("#recipe-select", Select)
             if select_widget.value:
                 recipe_name = str(select_widget.value)
-                # 这里可以发送消息开始调制
-                pass
+                self._start_recipe_mixing(recipe_name)

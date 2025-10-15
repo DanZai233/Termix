@@ -535,3 +535,16 @@ class StartMixingMessage(Message):
     def __init__(self, ingredients):
         super().__init__()
         self.ingredients = ingredients
+
+class StartRecipeMixingMessage(Message):
+    """开始按配方调制消息"""
+    def __init__(self, recipe):
+        super().__init__()
+        self.recipe = recipe
+
+class ShowRecipeDetailsMessage(Message):
+    """显示配方详细信息消息"""
+    def __init__(self, recipe, details):
+        super().__init__()
+        self.recipe = recipe
+        self.details = details
