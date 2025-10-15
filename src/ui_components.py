@@ -412,38 +412,45 @@ class GameScreen(Container):
     
     def on_key(self, event: Key) -> None:
         """处理键盘事件"""
-        # 检查当前聚焦的组件，避免与子组件的键盘事件冲突
-        focused = self.app.focused
-        if focused and hasattr(focused, 'id') and focused.id in ["ingredients-view", "recipes-view", "reference-view"]:
-            # 如果聚焦在子组件上，不处理全局快捷键
-            return
-            
-        # 全局导航快捷键
-        if event.key == "1":
+        # 全局导航快捷键 - 使用F键区
+        if event.key == "f1":
             self._show_view("ingredients")
             self.app.current_module = "ingredients"
             event.prevent_default()
-        elif event.key == "2":
+        elif event.key == "f2":
             self._show_view("recipes")
             self.app.current_module = "recipes"
             event.prevent_default()
-        elif event.key == "3":
+        elif event.key == "f3":
             self._show_view("mixing")
             self.app.current_module = "mixing"
             event.prevent_default()
-        elif event.key == "4":
+        elif event.key == "f4":
             self._show_view("free-mixing")
             self.app.current_module = "free-mixing"
             event.prevent_default()
-        elif event.key == "5":
+        elif event.key == "f5":
             self._show_view("reference")
             self.app.current_module = "reference"
+            event.prevent_default()
+        elif event.key == "f8":
+            # 显示帮助
+            self._show_help()
             event.prevent_default()
         elif event.key == "f11":
             self._toggle_layout()
             event.prevent_default()
+        elif event.key == "ctrl+c":
+            # 退出游戏
+            self.app.exit()
+            event.prevent_default()
         else:
-            # 方向键控制滚动
+            # 方向键控制滚动 - 只在没有子组件处理时才执行
+            focused = self.app.focused
+            if focused and hasattr(focused, 'id') and focused.id in ["ingredients-view", "recipes-view", "reference-view"]:
+                # 如果聚焦在子组件上，让子组件处理方向键
+                return
+                
             scroll_container = self.query_one("#main-scroll", ScrollableContainer)
             
             if event.key == "up":

@@ -57,11 +57,11 @@ class HelpScreen(Container):
 🎮 [bold cyan]主界面操作指南 (全键盘操作)[/bold cyan]
 
 [bold yellow]全局导航快捷键：[/bold yellow]
-• [bold green]1[/bold green] - 切换到材料界面
-• [bold green]2[/bold green] - 切换到配方界面
-• [bold green]3[/bold green] - 切换到标准调酒界面
-• [bold green]4[/bold green] - 切换到自由调酒界面
-• [bold green]5[/bold green] - 切换到快速参考界面
+• [bold green]F1[/bold green] - 切换到材料界面
+• [bold green]F2[/bold green] - 切换到配方界面
+• [bold green]F3[/bold green] - 切换到标准调酒界面
+• [bold green]F4[/bold green] - 切换到自由调酒界面
+• [bold green]F5[/bold green] - 切换到快速参考界面
 
 [bold yellow]导航按钮：[/bold yellow]
 • 🧪 材料 - 查看所有可用的调酒材料
@@ -74,8 +74,9 @@ class HelpScreen(Container):
 • ↑↓←→ - 滚动界面内容
 • Page Up/Down - 快速滚动
 • Home/End - 滚动到顶部/底部
-• F1 - 显示当前模块帮助
+• F8 - 显示帮助
 • F11 - 切换布局模式
+• Ctrl+C - 退出游戏
 • Escape - 返回欢迎界面
 • Tab - 切换焦点
 
@@ -85,7 +86,7 @@ class HelpScreen(Container):
 • 实时反馈：操作结果即时显示
 
 💡 [bold green]小贴士：[/bold green]
-使用数字键1-5可以快速在不同功能模块间切换！
+使用F1-F5可以快速在不同功能模块间切换！
         """
     
     def _get_ingredients_help(self) -> str:
@@ -100,6 +101,8 @@ class HelpScreen(Container):
 • [bold green]↑↓[/bold green] 切换聚焦的材料
 • [bold green]C[/bold green] 清空所有选择
 • [bold green]Enter[/bold green] 开始调酒
+• [bold green]F1-F5[/bold green] 切换到其他界面
+• [bold green]F8[/bold green] 显示帮助
 
 [bold yellow]材料分类：[/bold yellow]
 • 基酒 - 鸡尾酒的主体，如朗姆酒、伏特加等
@@ -134,6 +137,8 @@ class HelpScreen(Container):
 • [bold green]1-3[/bold green] 查看当前页面的配方详情
 • [bold green]A/←[/bold green] 翻到上一页
 • [bold green]D/→[/bold green] 翻到下一页
+• [bold green]F1-F5[/bold green] 切换到其他界面
+• [bold green]F8[/bold green] 显示帮助
 
 [bold yellow]配方分类：[/bold yellow]
 • 经典系列 - 莫吉托、玛格丽特、马提尼等传统配方
