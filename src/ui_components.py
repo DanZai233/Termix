@@ -19,6 +19,7 @@ from typing import Dict, List
 from .free_mixing import FreeMixingScreen
 from .ingredient_display import IngredientDisplayNew
 from .quick_reference import QuickReference, QuickRecipeSelector
+from .keyboard_ingredient_display import KeyboardIngredientDisplay
 
 
 class WelcomeScreen(Container):
@@ -239,6 +240,37 @@ class RecipeBook(Container):
                 recipe = recipes[start_idx + idx]
                 self.selected_recipe = recipe
                 self._show_recipe_details(recipe)
+    
+    def on_key(self, event) -> None:
+        """处理键盘事件"""
+        if event.key == "1":
+            self._show_recipe_by_index(0)
+        elif event.key == "2":
+            self._show_recipe_by_index(1)
+        elif event.key == "3":
+            self._show_recipe_by_index(2)
+        elif event.key == "a" or event.key == "left":
+            # 上一页
+            if self.current_page > 0:
+                self.current_page -= 1
+                self._update_display()
+        elif event.key == "d" or event.key == "right":
+            # 下一页
+            recipes = self.cocktail_system.get_unlocked_recipes()
+            total_pages = (len(recipes) + self.recipes_per_page - 1) // self.recipes_per_page
+            if self.current_page < total_pages - 1:
+                self.current_page += 1
+                self._update_display()
+    
+    def _show_recipe_by_index(self, idx):
+        """根据索引显示配方详情"""
+        recipes = self.cocktail_system.get_unlocked_recipes()
+        start_idx = self.current_page * self.recipes_per_page
+        
+        if start_idx + idx < len(recipes):
+            recipe = recipes[start_idx + idx]
+            self.selected_recipe = recipe
+            self._show_recipe_details(recipe)
 
 
 class MixingAnimation(Container):
@@ -343,7 +375,7 @@ class GameScreen(Container):
                 
                 # 内容区域
                 with Container(classes="content-section", id="content-section"):
-                    yield IngredientDisplayNew(self.cocktail_system, id="ingredients-view")
+                    yield KeyboardIngredientDisplay(self.cocktail_system, id="ingredients-view")
                     yield RecipeBook(self.cocktail_system, id="recipes-view")
                     yield QuickRecipeSelector(self.cocktail_system, id="mixing-view")
                     yield FreeMixingScreen(self.cocktail_system, self.bunny_girl, id="free-mixing-view")
@@ -380,33 +412,58 @@ class GameScreen(Container):
     
     def on_key(self, event: Key) -> None:
         """处理键盘事件"""
-        # 方向键控制滚动
-        scroll_container = self.query_one("#main-scroll", ScrollableContainer)
-        
-        if event.key == "up":
-            scroll_container.scroll_up()
+        # 全局导航快捷键
+        if event.key == "1":
+            self._show_view("ingredients")
+            self.app.current_module = "ingredients"
             event.prevent_default()
-        elif event.key == "down":
-            scroll_container.scroll_down()
+        elif event.key == "2":
+            self._show_view("recipes")
+            self.app.current_module = "recipes"
             event.prevent_default()
-        elif event.key == "left":
-            scroll_container.scroll_left()
+        elif event.key == "3":
+            self._show_view("mixing")
+            self.app.current_module = "mixing"
             event.prevent_default()
-        elif event.key == "right":
-            scroll_container.scroll_right()
+        elif event.key == "4":
+            self._show_view("free-mixing")
+            self.app.current_module = "free-mixing"
             event.prevent_default()
-        elif event.key == "pageup":
-            scroll_container.scroll_page_up()
+        elif event.key == "5":
+            self._show_view("reference")
+            self.app.current_module = "reference"
             event.prevent_default()
-        elif event.key == "pagedown":
-            scroll_container.scroll_page_down()
+        elif event.key == "f11":
+            self._toggle_layout()
             event.prevent_default()
-        elif event.key == "home":
-            scroll_container.scroll_home()
-            event.prevent_default()
-        elif event.key == "end":
-            scroll_container.scroll_end()
-            event.prevent_default()
+        else:
+            # 方向键控制滚动
+            scroll_container = self.query_one("#main-scroll", ScrollableContainer)
+            
+            if event.key == "up":
+                scroll_container.scroll_up()
+                event.prevent_default()
+            elif event.key == "down":
+                scroll_container.scroll_down()
+                event.prevent_default()
+            elif event.key == "left":
+                scroll_container.scroll_left()
+                event.prevent_default()
+            elif event.key == "right":
+                scroll_container.scroll_right()
+                event.prevent_default()
+            elif event.key == "pageup":
+                scroll_container.scroll_page_up()
+                event.prevent_default()
+            elif event.key == "pagedown":
+                scroll_container.scroll_page_down()
+                event.prevent_default()
+            elif event.key == "home":
+                scroll_container.scroll_home()
+                event.prevent_default()
+            elif event.key == "end":
+                scroll_container.scroll_end()
+                event.prevent_default()
     
     def _toggle_layout(self):
         """切换布局模式"""

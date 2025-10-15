@@ -46,6 +46,17 @@ class QuickReference(Container):
             self._update_tabs()
             self._update_display()
     
+    def on_key(self, event) -> None:
+        """处理键盘事件"""
+        if event.key == "1":
+            self.current_view = "recipes"
+            self._update_tabs()
+            self._update_display()
+        elif event.key == "2":
+            self.current_view = "ingredients"
+            self._update_tabs()
+            self._update_display()
+    
     def _update_tabs(self):
         """更新标签页状态"""
         recipe_btn = self.query_one("#tab-recipes", Button)
@@ -204,6 +215,16 @@ class QuickRecipeSelector(Container):
                 # 这里可以发送消息显示详细信息
                 pass
         elif event.button.id == "mix-selected-recipe":
+            # 开始按配方调制
+            select_widget = self.query_one("#recipe-select", Select)
+            if select_widget.value:
+                recipe_name = str(select_widget.value)
+                # 这里可以发送消息开始调制
+                pass
+    
+    def on_key(self, event) -> None:
+        """处理键盘事件"""
+        if event.key == "enter":
             # 开始按配方调制
             select_widget = self.query_one("#recipe-select", Select)
             if select_widget.value:
