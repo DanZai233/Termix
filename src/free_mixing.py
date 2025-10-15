@@ -7,6 +7,7 @@ from textual.containers import Container, Horizontal, Vertical, ScrollableContai
 from textual.widgets import Static, Button, Label, Input, Select
 from textual.reactive import reactive
 from textual.message import Message
+from textual.events import Key
 from rich.text import Text
 from rich.panel import Panel
 from rich.align import Align

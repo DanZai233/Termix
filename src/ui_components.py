@@ -3,10 +3,11 @@ UI组件模块 - 游戏界面组件
 """
 
 from textual.app import ComposeResult
-from textual.containers import Container, Horizontal, Vertical, Grid
+from textual.containers import Container, Horizontal, Vertical, Grid, ScrollableContainer
 from textual.widgets import Static, Button, Label, ProgressBar, Select, Input
 from textual.reactive import reactive
 from textual.message import Message
+from textual.events import Key
 from rich.text import Text
 from rich.panel import Panel
 from rich.align import Align
@@ -16,6 +17,7 @@ import asyncio
 from typing import Dict, List
 
 from .free_mixing import FreeMixingScreen
+from .ingredient_display import IngredientDisplayNew
 
 
 class WelcomeScreen(Container):
@@ -93,11 +95,20 @@ class IngredientSelector(Container):
         super().__init__(**kwargs)
         self.cocktail_system = cocktail_system
         self.selected_ingredients = {}
+        self.ingredient_id_map = {}  # 存储ID到材料名称的映射
+        
+        # 预先创建ID映射
+        for ingredient in self.cocktail_system.get_available_ingredients():
+            safe_id = f"ingredient-{hash(ingredient.name) % 10000}"
+            self.ingredient_id_map[safe_id] = ingredient.name
     
     def compose(self) -> ComposeResult:
         """构建材料选择界面"""
         
         yield Label("🧪 选择调酒材料", classes="section-title")
+        
+        # 清空并重新初始化ID映射
+        self.ingredient_id_map.clear()
         
         # 创建材料网格
         with Grid(id="ingredients-grid"):
@@ -124,17 +135,31 @@ class IngredientSelector(Container):
 {ingredient.description}
         """
         
+        # 使用预先创建的安全ID
+        safe_id = None
+        for existing_id, name in self.ingredient_id_map.items():
+            if name == ingredient.name:
+                safe_id = existing_id
+                break
+        
+        if safe_id is None:
+            # 如果没找到，创建新的安全ID
+            safe_id = f"ingredient-{hash(ingredient.name) % 10000}"
+            self.ingredient_id_map[safe_id] = ingredient.name
+        
         return Button(
             card_content.strip(),
-            id=f"ingredient-{ingredient.name}",
+            id=safe_id,
             classes="ingredient-card"
         )
     
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """处理按钮点击"""
         if event.button.id and event.button.id.startswith("ingredient-"):
-            ingredient_name = event.button.id.replace("ingredient-", "")
-            self._toggle_ingredient(ingredient_name)
+            # 从映射中获取真实的材料名称
+            ingredient_name = self.ingredient_id_map.get(event.button.id)
+            if ingredient_name:
+                self._toggle_ingredient(ingredient_name)
         elif event.button.id == "clear-selection":
             self.selected_ingredients.clear()
             self._update_selection_display()
@@ -290,6 +315,7 @@ class GameScreen(Container):
         self.bunny_girl = bunny_girl
         self.cocktail_system = cocktail_system
         self.current_view = "ingredients"
+        self.layout_mode = "horizontal"  # horizontal 或 vertical
     
     def compose(self) -> ComposeResult:
         """构建游戏界面"""
@@ -300,21 +326,23 @@ class GameScreen(Container):
             Button("📖 配方", id="nav-recipes"),
             Button("🍸 标准调酒", id="nav-mixing"),
             Button("🎨 自由调酒", id="nav-free-mixing"),
+            Button("🔄 切换布局", id="toggle-layout"),
             classes="nav-bar"
         )
         
-        # 主要内容区域
-        with Horizontal(id="main-content"):
-            # 左侧角色显示
-            with Vertical(classes="character-panel"):
-                yield CharacterDisplay(self.bunny_girl, id="character")
-            
-            # 右侧内容区域
-            with Vertical(classes="content-panel"):
-                yield IngredientSelector(self.cocktail_system, id="ingredients-view")
-                yield RecipeBook(self.cocktail_system, id="recipes-view")
-                yield MixingAnimation(id="mixing-view")
-                yield FreeMixingScreen(self.cocktail_system, self.bunny_girl, id="free-mixing-view")
+        # 主要内容区域 - 使用ScrollableContainer支持滚动
+        with ScrollableContainer(id="main-scroll"):
+            with Container(id="main-content"):
+                # 角色显示区域
+                with Container(classes="character-section", id="character-section"):
+                    yield CharacterDisplay(self.bunny_girl, id="character")
+                
+                # 内容区域
+                with Container(classes="content-section", id="content-section"):
+                    yield IngredientDisplayNew(self.cocktail_system, id="ingredients-view")
+                    yield RecipeBook(self.cocktail_system, id="recipes-view")
+                    yield MixingAnimation(id="mixing-view")
+                    yield FreeMixingScreen(self.cocktail_system, self.bunny_girl, id="free-mixing-view")
     
     def on_mount(self):
         """界面挂载时的初始化"""
@@ -329,12 +357,83 @@ class GameScreen(Container):
         """处理导航按钮点击"""
         if event.button.id == "nav-ingredients":
             self._show_view("ingredients")
+            self.app.current_module = "ingredients"
         elif event.button.id == "nav-recipes":
             self._show_view("recipes")
+            self.app.current_module = "recipes"
         elif event.button.id == "nav-mixing":
             self._show_view("mixing")
+            self.app.current_module = "mixing"
         elif event.button.id == "nav-free-mixing":
             self._show_view("free-mixing")
+            self.app.current_module = "free-mixing"
+        elif event.button.id == "toggle-layout":
+            self._toggle_layout()
+    
+    def on_key(self, event: Key) -> None:
+        """处理键盘事件"""
+        # 方向键控制滚动
+        scroll_container = self.query_one("#main-scroll", ScrollableContainer)
+        
+        if event.key == "up":
+            scroll_container.scroll_up()
+            event.prevent_default()
+        elif event.key == "down":
+            scroll_container.scroll_down()
+            event.prevent_default()
+        elif event.key == "left":
+            scroll_container.scroll_left()
+            event.prevent_default()
+        elif event.key == "right":
+            scroll_container.scroll_right()
+            event.prevent_default()
+        elif event.key == "pageup":
+            scroll_container.scroll_page_up()
+            event.prevent_default()
+        elif event.key == "pagedown":
+            scroll_container.scroll_page_down()
+            event.prevent_default()
+        elif event.key == "home":
+            scroll_container.scroll_home()
+            event.prevent_default()
+        elif event.key == "end":
+            scroll_container.scroll_end()
+            event.prevent_default()
+    
+    def _toggle_layout(self):
+        """切换布局模式"""
+        if self.layout_mode == "horizontal":
+            self.layout_mode = "vertical"
+            self._apply_vertical_layout()
+        else:
+            self.layout_mode = "horizontal"
+            self._apply_horizontal_layout()
+    
+    def _apply_horizontal_layout(self):
+        """应用水平布局"""
+        main_content = self.query_one("#main-content")
+        main_content.styles.layout = "horizontal"
+        
+        character_section = self.query_one("#character-section")
+        character_section.styles.width = "40%"
+        character_section.styles.height = "100%"
+        
+        content_section = self.query_one("#content-section")
+        content_section.styles.width = "60%"
+        content_section.styles.height = "100%"
+    
+    def _apply_vertical_layout(self):
+        """应用垂直布局"""
+        main_content = self.query_one("#main-content")
+        main_content.styles.layout = "vertical"
+        
+        character_section = self.query_one("#character-section")
+        character_section.styles.width = "100%"
+        character_section.styles.height = "30%"
+        
+        content_section = self.query_one("#content-section")
+        content_section.styles.width = "100%"
+        content_section.styles.height = "70%"
     
     def _show_view(self, view_name):
         """显示指定视图"""

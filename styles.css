@@ -51,20 +51,29 @@ WelcomeScreen {
     margin-right: 1;
 }
 
-#main-content {
+#main-scroll {
     height: 1fr;
+    scrollbar-background: $surface;
+    scrollbar-color: $primary;
 }
 
-.character-panel {
+#main-content {
+    layout: horizontal;
+    min-height: 100vh;
+}
+
+.character-section {
     width: 40%;
     background: $surface;
     border-right: solid $secondary;
     padding: 1;
+    min-height: 100%;
 }
 
-.content-panel {
+.content-section {
     width: 60%;
     padding: 1;
+    min-height: 100%;
 }
 
 /* 角色显示样式 */
@@ -168,21 +177,103 @@ CharacterDisplay {
     display: none;
 }
 
+#help {
+    display: none;
+    layer: above;
+    background: $surface 90%;
+    border: thick $primary;
+    padding: 2;
+    margin: 2;
+}
+
+/* 帮助界面样式 */
+.help-title {
+    text-style: bold;
+    color: $primary;
+    text-align: center;
+    margin-bottom: 2;
+}
+
+#help-content {
+    height: 100%;
+}
+
+#help-scroll {
+    height: 1fr;
+    border: solid $secondary;
+    padding: 1;
+    margin: 1 0;
+}
+
+.help-buttons {
+    height: 3;
+    margin-top: 1;
+}
+
+.help-buttons Button {
+    margin-right: 1;
+}
+
+/* 新材料显示组件样式 */
+#ingredients-display {
+    background: $panel;
+    border: solid $secondary;
+    padding: 1;
+    margin: 1 0;
+    min-height: 15;
+}
+
+.page-controls {
+    margin: 1 0;
+    height: 3;
+}
+
+.page-controls Button {
+    margin: 0 1;
+}
+
+#page-info {
+    text-align: center;
+    color: $accent;
+    margin: 0 2;
+}
+
+.ingredient-buttons {
+    margin: 1 0;
+}
+
+.ingredient-select-btn {
+    margin: 0 1;
+    height: 3;
+    min-width: 12;
+}
+
+.action-buttons {
+    margin: 2 0;
+}
+
+.action-buttons Button {
+    margin-right: 1;
+}
+
 /* 自由调酒界面样式 */
 #free-mixing-layout {
     height: 100%;
+    min-height: 50;
 }
 
 .side-panels {
     width: 40%;
     background: $surface;
     border-right: solid $secondary;
+    min-width: 30;
 }
 
 .info-panel {
     height: 50%;
     border-bottom: solid $secondary;
     padding: 1;
+    min-height: 15;
 }
 
 .panel-title {
@@ -194,6 +285,7 @@ CharacterDisplay {
 .mixing-area {
     width: 60%;
     padding: 1;
+    min-width: 40;
 }
 
 .sub-title {
@@ -231,6 +323,31 @@ CharacterDisplay {
     min-height: 10;
 }
 
+/* 滚动条样式 */
+ScrollableContainer {
+    scrollbar-background: $surface;
+    scrollbar-color: $primary;
+    scrollbar-corner-color: $surface;
+}
+
+ScrollableContainer:focus {
+    scrollbar-color: $accent;
+}
+
+/* 自适应样式 */
+Container {
+    overflow: auto;
+}
+
+/* 小屏幕优化 */
+.nav-bar {
+    overflow-x: auto;
+}
+
+.nav-bar Button {
+    min-width: 8;
+}
+
 /* 响应式设计 - Textual不支持@media，移除 */
 
 /* 动画效果 */
@@ -244,15 +361,4 @@ Button:hover {
     background: $accent 10%;
 }
 
-/* 颜色主题 */
-:root {
-    --primary: #ff6b9d;
-    --secondary: #4ecdc4;
-    --accent: #45b7d1;
-    --success: #96ceb4;
-    --warning: #feca57;
-    --error: #ff6b6b;
-    --surface: #2c3e50;
-    --panel: #34495e;
-    --background: #1a252f;
-}
+/* Textual不支持:root和CSS变量，移除颜色主题定义 */
