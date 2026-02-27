@@ -40,7 +40,7 @@ WelcomeScreen {
 }
 
 #start_game {
-    margin: 0 auto;
+    margin: 0;
     width: 24;
 }
 
@@ -307,6 +307,6 @@ ScrollableContainer {
 }
 
 #result-overlay Button {
-    margin: 1 auto 0 auto;
+    margin: 1 0 0 0;
     width: 20;
 }
