@@ -239,9 +239,12 @@ class RecipesView(Container):
         self.per_page = 4
 
     def compose(self) -> ComposeResult:
-        yield Label("📖 配方图鉴  [dim](1-4查看详情 A/D翻页)[/dim]", classes="section-title")
+        yield Label("📖 配方图鉴  [dim](1-4导入配方 A/D翻页)[/dim]", classes="section-title")
         with ScrollableContainer(id="recipe-list-area"):
             yield Static("", id="recipe-list")
+        with Horizontal(classes="ingredient-btns"):
+            for i in range(4):
+                yield Button("", id=f"rcp-use-{i}")
         with Horizontal(classes="recipe-nav"):
             yield Button("⬅ 上页(A)", id="rcp-prev")
             yield Static("", id="rcp-page")
@@ -276,6 +279,15 @@ class RecipesView(Container):
         self.query_one("#rcp-prev", Button).disabled = self.page <= 0
         self.query_one("#rcp-next", Button).disabled = self.page >= total - 1
 
+        for i in range(4):
+            btn = self.query_one(f"#rcp-use-{i}", Button)
+            if i < len(current):
+                btn.label = f"{i+1}. 导入 {current[i].emoji}{current[i].name[:6]}"
+                btn.display = True
+                btn.variant = "success"
+            else:
+                btn.display = False
+
     def on_button_pressed(self, event: Button.Pressed):
         bid = event.button.id
         if bid == "rcp-prev" and self.page > 0:
@@ -284,6 +296,12 @@ class RecipesView(Container):
         elif bid == "rcp-next" and self.page < self._total_pages() - 1:
             self.page += 1
             self._refresh()
+        elif bid and bid.startswith("rcp-use-"):
+            idx = int(bid.split("-")[-1])
+            recipes = self.cs.get_unlocked_recipes()
+            start = self.page * self.per_page
+            if start + idx < len(recipes):
+                self._use_recipe(recipes[start + idx])
 
     def on_key(self, event: Key):
         key = event.key

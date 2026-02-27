@@ -22,3 +22,6 @@ This project has no lint tool, test framework, or CI configuration. Use `python3
 - `demo.py` uses `rich.prompt.Prompt.ask()` with `choices=` — it blocks on TTY input. Do not run it non-interactively.
 - Game data lives in `config/` as JSON files (`ingredients.json`, `recipes.json`, `game_config.json`); no build step is needed.
 - Dependencies are installed to user site-packages (`pip install --user`) since system site-packages is not writable in the cloud VM.
+- **Textual CSS does not support `margin: auto`** — use integer values only (e.g. `margin: 0 2;`).
+- The app has three main views: 材料 (Ingredients), 配方 (Recipes), 调酒台 (Mixing Station). Navigation via F1/F2/F3 or tab buttons.
+- `src/glass_system.py` handles glass rendering with Rich color markup — colors render correctly inside Textual `Static` widgets.
